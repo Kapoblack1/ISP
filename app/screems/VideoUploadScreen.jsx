@@ -38,9 +38,9 @@ const VideoUploadScreen = () => {
         aspect: [16, 9],
         quality: 1,
       });
-
-      if (!result.cancelled) {
-        setVideoUri(result.uri);
+  
+      if (!result.canceled) {
+        setVideoUri(result.assets[0].uri);
       }
     } catch (error) {
       console.log('Error picking video:', error);
@@ -62,7 +62,7 @@ const VideoUploadScreen = () => {
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
       });
 
-      if (!result.cancelled) {
+      if (!result.canceled) {
         setThumbnailUri(result.assets[0].uri);
       }
     } catch (error) {

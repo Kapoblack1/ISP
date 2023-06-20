@@ -11,6 +11,8 @@ import VideoListScreen from './app/screems/VideoListScreen';
 import AudioUploadScreen from './app/screems/AudioUploadScreen';
 import AudioListScreen from './app/screems/AudioListScreen';
 import RadioListScreen from './app/screems/RadioListScreen';
+import Login1 from './app/screems/Login1';
+import Register from './app/screems/Register';
 
 // Importe os componentes de tela que você deseja navegar
 
@@ -21,7 +23,7 @@ const Stack = createStackNavigator();
 const App = () => {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName='RadioListScreen'>
+      <Stack.Navigator initialRouteName='Login1'>
         <Stack.Screen name="Login" component={Login} options={{headerShown:true}}/>
         <Stack.Screen name="UserPage" component={UserPage} options={{headerShown:true}}/>
         <Stack.Screen name="ImageUploadScreen" component={ImageUploadScreen} options={{headerShown:true}}/>
@@ -32,6 +34,8 @@ const App = () => {
         <Stack.Screen name="AudioUploadScreen" component={AudioUploadScreen} options={{headerShown:true}}/>
         <Stack.Screen name="AudioListScreen" component={AudioListScreen} options={{headerShown:true}}/>
         <Stack.Screen name="RadioListScreen" component={RadioListScreen} options={{headerShown:true}}/>
+        <Stack.Screen name="Login1" component={Login1} options={{headerShown:true}}/>
+        <Stack.Screen name="Register" component={Register} options={{headerShown:true}}/>
       </Stack.Navigator>
     </NavigationContainer>
   );
