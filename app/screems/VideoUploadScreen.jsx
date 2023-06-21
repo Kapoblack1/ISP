@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, Alert, TextInput, FlatList } from 'react-native';
+import { View, Text, TouchableOpacity, Alert, TextInput, Image, FlatList } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, getDocs } from 'firebase/firestore';
@@ -11,8 +11,10 @@ const VideoUploadScreen = () => {
   const [description, setDescription] = useState('');
   const [videoUri, setVideoUri] = useState('');
   const [thumbnailUri, setThumbnailUri] = useState('');
+  const [thumbnailURL, setThumbnailURL] = useState('');
   const [videos, setVideos] = useState([]);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState(null);
   const videoRef = useRef(null);
 
   useEffect(() => {
@@ -38,9 +40,9 @@ const VideoUploadScreen = () => {
         aspect: [16, 9],
         quality: 1,
       });
-  
+
       if (!result.canceled) {
-        setVideoUri(result.assets[0].uri);
+        setVideoUri(result.uri);
       }
     } catch (error) {
       console.log('Error picking video:', error);
@@ -63,7 +65,7 @@ const VideoUploadScreen = () => {
       });
 
       if (!result.canceled) {
-        setThumbnailUri(result.assets[0].uri);
+        setThumbnailUri(result.uri);
       }
     } catch (error) {
       console.log('Error selecting thumbnail:', error);
@@ -90,6 +92,9 @@ const VideoUploadScreen = () => {
         const thumbnailStorageRef = ref(FIREBASE_STORAGE, `thumbnails/${thumbnailFilename}`);
         await uploadBytes(thumbnailStorageRef, thumbnailBlob);
 
+        // Get the download URL of the thumbnail
+        const thumbnailURL = await getDownloadURL(thumbnailStorageRef);
+
         // Upload the video to "videos" folder in Firebase Storage
         const videoStorageRef = ref(FIREBASE_STORAGE, `videos/${videoFilename}`);
         const videoSnapshot = await uploadBytes(videoStorageRef, videoBlob);
@@ -97,13 +102,14 @@ const VideoUploadScreen = () => {
         // Get the download URL of the video
         const videoURL = await getDownloadURL(videoSnapshot.ref);
 
-        // Save the paths and video URL to Firestore
+        // Save the paths, URLs, and description to Firestore
         const videoData = {
           description,
           thumbnailPath: thumbnailStorageRef.fullPath,
+          thumbnailURL,
           videoPath: videoStorageRef.fullPath,
-          videoURL: videoURL, // Add the video URL to the document data
-          createdAt: new Date(), // Add the current timestamp as the created date
+          videoURL,
+          createdAt: new Date(),
         };
 
         const videosCollection = collection(FIREBASE_DB, 'videos');
@@ -113,6 +119,7 @@ const VideoUploadScreen = () => {
         setDescription('');
         setVideoUri('');
         setThumbnailUri('');
+        setThumbnailURL('');
       } catch (error) {
         console.log('Error uploading video to the database:', error);
       }
@@ -134,6 +141,36 @@ const VideoUploadScreen = () => {
     } catch (error) {
       console.log('Error fetching videos:', error);
     }
+  };
+
+  const handleThumbnailPress = (videoURL) => {
+    setSelectedVideo(videoURL);
+  };
+
+  const VideoItem = ({ item }) => {
+    const handlePress = () => {
+      handleThumbnailPress(item.videoURL);
+    };
+
+    return (
+      <View style={{ marginBottom: 16 }}>
+        {selectedVideo === item.videoURL ? (
+          <Video
+            source={{ uri: item.videoURL }}
+            style={{ width: 300, height: 300 }}
+            resizeMode="contain"
+            useNativeControls
+          />
+        ) : (
+          <TouchableOpacity onPress={handlePress}>
+            <Image source={{ uri: item.thumbnailURL }} style={{ width: 200, height: 200 }} />
+          </TouchableOpacity>
+        )}
+        <Text>Description: {item.description}</Text>
+        <Text>Video URL: {item.videoURL}</Text>
+        <Text>Thumbnail URL: {item.thumbnailURL}</Text>
+      </View>
+    );
   };
 
   return (
@@ -158,13 +195,22 @@ const VideoUploadScreen = () => {
         <Text>Select Thumbnail</Text>
       </TouchableOpacity>
       {thumbnailUri && (
-        <Text style={{ marginBottom: 16 }}>Selected Thumbnail: {thumbnailUri}</Text>
+        <View style={{ marginBottom: 16 }}>
+          <Text>Selected Thumbnail:</Text>
+          <Image source={{ uri: thumbnailUri }} style={{ width: 200, height: 200 }} />
+        </View>
       )}
       <TextInput
         value={description}
         onChangeText={setDescription}
         placeholder="Enter description"
-        style={{ marginBottom: 16, paddingHorizontal: 10, height: 40, borderColor: 'gray', borderWidth: 1 }}
+        style={{
+          marginBottom: 16,
+          paddingHorizontal: 10,
+          height: 40,
+          borderColor: 'gray',
+          borderWidth: 1,
+        }}
       />
       <TouchableOpacity onPress={handleUploadPress}>
         <Text>Upload Video</Text>
@@ -172,18 +218,7 @@ const VideoUploadScreen = () => {
       <FlatList
         data={videos}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={{ marginBottom: 16 }}>
-            <Text>Description: {item.description}</Text>
-            <Text>Video URL: {item.videoURL}</Text>
-            <Video
-              source={{ uri: item.videoURL }}
-              style={{ width: 300, height: 300 }}
-              resizeMode="contain"
-              useNativeControls
-            />
-          </View>
-        )}
+        renderItem={({ item }) => <VideoItem item={item} />}
       />
     </View>
   );

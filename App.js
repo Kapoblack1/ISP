@@ -23,7 +23,7 @@ const Stack = createStackNavigator();
 const App = () => {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName='Login1'>
+      <Stack.Navigator initialRouteName='VideoUploadScreen'>
         <Stack.Screen name="Login" component={Login} options={{headerShown:true}}/>
         <Stack.Screen name="UserPage" component={UserPage} options={{headerShown:true}}/>
         <Stack.Screen name="ImageUploadScreen" component={ImageUploadScreen} options={{headerShown:true}}/>
