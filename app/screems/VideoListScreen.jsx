@@ -1,50 +1,68 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList } from 'react-native';
-import { getFirestore, collection, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { View, Text, Image, TouchableOpacity, FlatList } from 'react-native';
+import { getFirestore, collection, onSnapshot, query, orderBy, getDocs } from 'firebase/firestore';
 import { FIREBASE_DB } from '../../FirebaseConfig';
 import { Video } from 'expo-av';
 
 const VideoListScreen = () => {
   const [videos, setVideos] = useState([]);
+  const [selectedVideo, setSelectedVideo] = useState(null);
 
   useEffect(() => {
     subscribeToVideos();
   }, []);
 
-  const subscribeToVideos = () => {
-    const videosCollection = collection(FIREBASE_DB, 'videos');
-    const videosQuery = query(videosCollection, orderBy('createdAt', 'desc'));
-
-    onSnapshot(videosQuery, (snapshot) => {
-      const videosData = snapshot.docs.map((doc) => ({
+  const subscribeToVideos = async () => {
+    try {
+      const videosCollection = collection(FIREBASE_DB, 'videos');
+      const videosQuery = query(videosCollection, orderBy('createdAt', 'desc'));
+      const querySnapshot = await getDocs(videosQuery);
+      const videosData = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
       setVideos(videosData);
-    });
+    } catch (error) {
+      console.log('Error fetching videos:', error);
+    }
   };
 
+  const handleThumbnailPress = (videoURL) => {
+    setSelectedVideo(videoURL);
+  };
+
+  const VideoItem = ({ item }) => {
+    const handlePress = () => {
+      handleThumbnailPress(item.videoURL);
+    };
+
+    return (
+      <View style={{ marginBottom: 16 }}>
+        {selectedVideo === item.videoURL ? (
+          <Video
+            source={{ uri: item.videoURL }}
+            style={{ width: 300, height: 300 }}
+            resizeMode="contain"
+            useNativeControls
+          />
+        ) : (
+          <TouchableOpacity onPress={handlePress}>
+            <Image source={{ uri: item.thumbnailURL }} style={{ width: 200, height: 200 }} />
+          </TouchableOpacity>
+        )}
+        <Text>Description: {item.description}</Text>
+        <Text>Video URL: {item.videoURL}</Text>
+        <Text>Thumbnail URL: {item.thumbnailURL}</Text>
+      </View>
+    );
+  };
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
       <FlatList
         data={videos}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={{ marginBottom: 16 }}>
-            <Text>Description: {item.description}
-            </Text>
-            <Text>id: {item.id}
-            </Text>
-            <Text>URL: {item.videoURL}</Text>
-            <Video
-              source={{ uri: item.videoURL }}
-              style={{ width: 300, height: 300 }}
-              resizeMode="contain"
-              useNativeControls
-            />
-          </View>
-        )}
+        renderItem={({ item }) => <VideoItem item={item} />}
       />
     </View>
   );
