@@ -5,22 +5,20 @@ import { collection, query, where, getDocs } from 'firebase/firestore';
 import { FIREBASE_STORAGE, FIREBASE_DB } from '../../FirebaseConfig';
 import { useNavigation } from '@react-navigation/native';
 
-const Login1 = () => {
+const Login1 = ({ isLoggedIn, setIsLoggedIn }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [imageUrl, setImageUrl] = useState('');
 
   const navigation = useNavigation();
 
-  function  handleRegister(){
-    // Handle navigation to the registration page
+  function handleRegister() {
     navigation.navigate('Register');
     console.log('Navigating to the registration page...');
-  };
-
+  }
 
   useEffect(() => {
-    const imageRef = ref(FIREBASE_STORAGE, '/imagens/teste.jpg');
+    const imageRef = ref(FIREBASE_STORAGE, '/imagens/logo.png');
     getDownloadURL(imageRef)
       .then((url) => {
         setImageUrl(url);
@@ -41,8 +39,9 @@ const Login1 = () => {
       const querySnapshot = await getDocs(q);
 
       if (querySnapshot.size > 0) {
-        console.log('Entered');
-        navigation.navigate('VideoListScreen');
+        const registeredPersonId  = querySnapshot.docs[0].id;
+        navigation.navigate('Home', { personId: registeredPersonId });
+
       } else {
         console.log('The user does not exist');
       }
@@ -51,7 +50,6 @@ const Login1 = () => {
     }
   };
 
- 
   return (
     <View style={styles.container}>
       {imageUrl ? (
@@ -108,8 +106,8 @@ const styles = StyleSheet.create({
   },
   logo: {
     width: 200,
-    height: 100,
-    marginBottom: 50,
+    height: 130,
+    marginBottom: 30,
   },
   card: {
     width: '80%',
@@ -181,4 +179,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Login1;
+export default Login1

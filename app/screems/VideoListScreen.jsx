@@ -51,8 +51,6 @@ const VideoListScreen = () => {
           </TouchableOpacity>
         )}
         <Text>Description: {item.description}</Text>
-        <Text>Video URL: {item.videoURL}</Text>
-        <Text>Thumbnail URL: {item.thumbnailURL}</Text>
       </View>
     );
   };

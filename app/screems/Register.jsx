@@ -34,7 +34,7 @@ const Register = () => {
         email,
       });
       console.log('Nova pessoa criada com ID:', docRef.id);
-      navigation.navigate('VideoPage');
+      navigation.navigate('VideoUploadScreen');
     } catch (error) {
       console.log('Erro ao criar uma nova pessoa:', error);
     }

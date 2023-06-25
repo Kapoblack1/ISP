@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Text, View, Button, Image, ScrollView } from 'react-native';
+import { Text, View, Button, Image, FlatList } from 'react-native';
 import { FIREBASE_DB } from '../../FirebaseConfig';
 import { getFirestore, collection, onSnapshot } from 'firebase/firestore';
 import { Audio, Video } from 'expo-av';
@@ -94,23 +94,32 @@ const RadioListScreen1 = () => {
     }
   };
 
+  const renderRadioItem = ({ item }) => (
+    <View key={item.id} style={{ marginRight: 20 }}>
+      <Image
+        source={{ uri: item.thumbnailURL }}
+        style={{ width: 150, height: 150 }}
+        onPress={() => handlePlayVideo(item)}
+      />
+       <Text>{item.name}</Text>
+      <Button
+        title={item.isPlaying ? 'Pausar' : 'Reproduzir'}
+        onPress={() => handlePlayRadio(item)}
+      ></Button>
+
+    </View>
+  );
+
   return (
-    <ScrollView horizontal>
-      <View>
-        <Text>Lista de Rádios:</Text>
-        {radios.map((radio) => (
-          <View key={radio.id}>
-            <Text>Nome: {radio.name}</Text>
-            <Text>Frequência: {radio.frequency}</Text>
-            <Image source={{ uri: radio.thumbnailURL }} style={{ width: 100, height: 100 }} onPress={() => handlePlayVideo(radio)} />
-            <Button
-              title={radio.isPlaying ? 'Pausar' : 'Reproduzir'}
-              onPress={() => handlePlayRadio(radio)}
-            />
-          </View>
-        ))}
-      </View>
-    </ScrollView>
+    <FlatList
+      data={radios}
+      keyExtractor={(item) => item.id}
+      renderItem={renderRadioItem}
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      snapToInterval={120} // Define o intervalo entre os itens do carrossel
+      contentContainerStyle={{ paddingHorizontal: 10 }}
+    />
   );
 };
 
