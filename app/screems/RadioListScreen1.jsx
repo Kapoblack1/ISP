@@ -3,6 +3,7 @@ import { Text, View, Button, Image, FlatList } from 'react-native';
 import { FIREBASE_DB } from '../../FirebaseConfig';
 import { getFirestore, collection, onSnapshot } from 'firebase/firestore';
 import { Audio, Video } from 'expo-av';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 
 const RadioListScreen1 = () => {
   const [radios, setRadios] = useState([]);
@@ -96,17 +97,14 @@ const RadioListScreen1 = () => {
 
   const renderRadioItem = ({ item }) => (
     <View key={item.id} style={{ marginRight: 20 }}>
+      <TouchableOpacity onPress={() => handlePlayRadio(item)}>
       <Image
         source={{ uri: item.thumbnailURL }}
         style={{ width: 150, height: 150 }}
         onPress={() => handlePlayVideo(item)}
       />
+      </TouchableOpacity>
        <Text>{item.name}</Text>
-      <Button
-        title={item.isPlaying ? 'Pausar' : 'Reproduzir'}
-        onPress={() => handlePlayRadio(item)}
-      ></Button>
-
     </View>
   );
 

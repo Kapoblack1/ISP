@@ -1,117 +1,227 @@
-import React, { useEffect, useState } from 'react';
-import { Text, View, Button, Image, ScrollView } from 'react-native';
-import { FIREBASE_DB } from '../../FirebaseConfig';
-import { getFirestore, collection, onSnapshot } from 'firebase/firestore';
-import { Audio, Video } from 'expo-av';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, TouchableOpacity, Alert, TextInput, Image, FlatList } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, getDocs } from 'firebase/firestore';
+import { FIREBASE_STORAGE, FIREBASE_DB } from '../../FirebaseConfig';
+import { Video } from 'expo-av';
+import { v4 as uuidv4 } from 'uuid';
 
-const RadioListScreen1 = () => {
-  const [radios, setRadios] = useState([]);
-  const [currentRadio, setCurrentRadio] = useState(null);
+const VideoUploadScreen = () => {
+  const [description, setDescription] = useState('');
+  const [videoUri, setVideoUri] = useState('');
+  const [thumbnailUri, setThumbnailUri] = useState('');
+  const [thumbnailURL, setThumbnailURL] = useState('');
+  const [videos, setVideos] = useState([]);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState(null);
+  const videoRef = useRef(null);
 
   useEffect(() => {
-    const fetchRadios = async () => {
-      try {
-        const radiosCollection = collection(FIREBASE_DB, 'radios');
-        const unsubscribe = onSnapshot(radiosCollection, (snapshot) => {
-          const radioList = snapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-            isPlaying: false,
-            soundObject: null,
-            videoObject: null
-          }));
-          setRadios(radioList);
-        });
-
-        return () => unsubscribe();
-      } catch (error) {
-        console.error('Erro ao buscar as rádios:', error);
-      }
-    };
-
-    fetchRadios();
+    getPermission();
+    subscribeToVideos();
   }, []);
 
-  const handlePlayRadio = async (radio) => {
-    try {
-      if (currentRadio && currentRadio.soundObject) {
-        await currentRadio.soundObject.pauseAsync();
-        currentRadio.isPlaying = false;
-      }
-
-      if (radio.id === currentRadio?.id) {
-        // Clicou na mesma estação, pausa a reprodução
-        setCurrentRadio(null);
-        return;
-      }
-
-      if (radio.soundObject) {
-        await radio.soundObject.playAsync();
-        radio.isPlaying = true;
-      } else {
-        const soundObject = new Audio.Sound();
-        await soundObject.loadAsync({ uri: radio.frequency });
-        await soundObject.playAsync();
-        radio.soundObject = soundObject;
-        radio.isPlaying = true;
-      }
-
-      setCurrentRadio(radio);
-      setRadios([...radios]);
-    } catch (error) {
-      console.error('Erro ao reproduzir o áudio:', error);
+  const getPermission = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert(
+        'Permission denied',
+        'Sorry, we need media library permissions to make this work!'
+      );
     }
   };
 
-  const handlePlayVideo = async (radio) => {
+  const pickVideo = async () => {
     try {
-      if (currentRadio && currentRadio.videoObject) {
-        await currentRadio.videoObject.pauseAsync();
-        currentRadio.isVideoPlaying = false;
-      }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+        allowsEditing: true,
+        aspect: [16, 9],
+        quality: 1,
+      });
 
-      if (radio.id === currentRadio?.id) {
-        // Clicou no mesmo vídeo, pausa a reprodução
-        setCurrentRadio(null);
-        return;
+      if (!result.canceled) {
+        setVideoUri(result.uri);
       }
-
-      if (radio.videoObject) {
-        await radio.videoObject.playAsync();
-        radio.isVideoPlaying = true;
-      } else {
-        const videoObject = new Video.Video();
-        await videoObject.loadAsync({ uri: radio.videoURL });
-        await videoObject.playAsync();
-        radio.videoObject = videoObject;
-        radio.isVideoPlaying = true;
-      }
-
-      setCurrentRadio(radio);
-      setRadios([...radios]);
     } catch (error) {
-      console.error('Erro ao reproduzir o vídeo:', error);
+      console.log('Error picking video:', error);
     }
+  };
+
+  const handleTogglePlay = () => {
+    if (isPlaying) {
+      videoRef.current.pauseAsync();
+    } else {
+      videoRef.current.playAsync();
+    }
+    setIsPlaying(!isPlaying);
+  };
+
+  const handleThumbnailSelection = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      });
+
+      if (!result.canceled) {
+        setThumbnailUri(result.uri);
+      }
+    } catch (error) {
+      console.log('Error selecting thumbnail:', error);
+    }
+  };
+
+  const handleUploadPress = async () => {
+    if (description && videoUri && thumbnailUri) {
+      try {
+        const thumbnailResponse = await fetch(thumbnailUri);
+        const thumbnailBlob = await thumbnailResponse.blob();
+
+        const videoResponse = await fetch(videoUri);
+        const videoBlob = await videoResponse.blob();
+
+        // Generate unique filenames for the thumbnail and video
+        const thumbnailExtension = thumbnailUri.split('.').pop();
+        const thumbnailFilename = `${uuidv4()}.${thumbnailExtension}`;
+
+        const videoExtension = videoUri.split('.').pop();
+        const videoFilename = `${uuidv4()}.${videoExtension}`;
+
+        // Upload the thumbnail to "thumbnails" folder in Firebase Storage
+        const thumbnailStorageRef = ref(FIREBASE_STORAGE, `thumbnails/${thumbnailFilename}`);
+        await uploadBytes(thumbnailStorageRef, thumbnailBlob);
+
+        // Get the download URL of the thumbnail
+        const thumbnailURL = await getDownloadURL(thumbnailStorageRef);
+
+        // Upload the video to "videos" folder in Firebase Storage
+        const videoStorageRef = ref(FIREBASE_STORAGE, `videos/${videoFilename}`);
+        const videoSnapshot = await uploadBytes(videoStorageRef, videoBlob);
+
+        // Get the download URL of the video
+        const videoURL = await getDownloadURL(videoSnapshot.ref);
+
+        // Save the paths, URLs, and description to Firestore
+        const videoData = {
+          description,
+          thumbnailPath: thumbnailStorageRef.fullPath,
+          thumbnailURL,
+          videoPath: videoStorageRef.fullPath,
+          videoURL,
+          createdAt: new Date(),
+        };
+
+        const videosCollection = collection(FIREBASE_DB, 'videos');
+        await addDoc(videosCollection, videoData);
+
+        console.log('Video successfully uploaded to the database!');
+        setDescription('');
+        setVideoUri('');
+        setThumbnailUri('');
+        setThumbnailURL('');
+      } catch (error) {
+        console.log('Error uploading video to the database:', error);
+      }
+    } else {
+      console.log('Please fill in all fields before uploading the video.');
+    }
+  };
+
+  const subscribeToVideos = async () => {
+    try {
+      const videosCollection = collection(FIREBASE_DB, 'videos');
+      const videosQuery = query(videosCollection, orderBy('createdAt', 'desc'));
+      const querySnapshot = await getDocs(videosQuery);
+      const videosData = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setVideos(videosData);
+    } catch (error) {
+      console.log('Error fetching videos:', error);
+    }
+  };
+
+  const handleThumbnailPress = (videoURL) => {
+    setSelectedVideo(videoURL);
+  };
+
+  const VideoItem = ({ item }) => {
+    const handlePress = () => {
+      handleThumbnailPress(item.videoURL);
+    };
+
+    return (
+      <View style={{ marginBottom: 16 }}>
+        {selectedVideo === item.videoURL ? (
+          <Video
+            source={{ uri: item.videoURL }}
+            style={{ width: 300, height: 300 }}
+            resizeMode="contain"
+            useNativeControls
+          />
+        ) : (
+          <TouchableOpacity onPress={handlePress}>
+            <Image source={{ uri: item.thumbnailURL }} style={{ width: 200, height: 200 }} />
+          </TouchableOpacity>
+        )}
+        <Text>Description: {item.description}</Text>
+        <Text>Video URL: {item.videoURL}</Text>
+        <Text>Thumbnail URL: {item.thumbnailURL}</Text>
+      </View>
+    );
   };
 
   return (
-    <ScrollView horizontal>
-      <View>
-        <Text>Lista de Rádios:</Text>
-        {radios.map((radio) => (
-          <View key={radio.id}>
-            <Text>Nome: {radio.name}</Text>
-            <Text>Frequência: {radio.frequency}</Text>
-            <Image source={{ uri: radio.thumbnailURL }} style={{ width: 100, height: 100 }} onPress={() => handlePlayVideo(radio)} />
-            <Button
-              title={radio.isPlaying ? 'Pausar' : 'Reproduzir'}
-              onPress={() => handlePlayRadio(radio)}
-            />
-          </View>
-        ))}
-      </View>
-    </ScrollView>
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <TouchableOpacity onPress={pickVideo} style={{ marginBottom: 16 }}>
+        <Text>Select Video</Text>
+      </TouchableOpacity>
+      {videoUri && (
+        <View style={{ width: 300, height: 300 }}>
+          <Video
+            ref={videoRef}
+            source={{ uri: videoUri }}
+            style={{ flex: 1 }}
+            resizeMode="contain"
+          />
+        </View>
+      )}
+      <TouchableOpacity onPress={handleTogglePlay} style={{ marginTop: 16 }}>
+        <Text>{isPlaying ? 'Pause' : 'Play'}</Text>
+      </TouchableOpacity>
+      <TouchableOpacity onPress={handleThumbnailSelection} style={{ marginBottom: 16 }}>
+        <Text>Select Thumbnail</Text>
+      </TouchableOpacity>
+      {thumbnailUri && (
+        <View style={{ marginBottom: 16 }}>
+          <Text>Selected Thumbnail:</Text>
+          <Image source={{ uri: thumbnailUri }} style={{ width: 200, height: 200 }} />
+        </View>
+      )}
+      <TextInput
+        value={description}
+        onChangeText={setDescription}
+        placeholder="Enter description"
+        style={{
+          marginBottom: 16,
+          paddingHorizontal: 10,
+          height: 40,
+          borderColor: 'gray',
+          borderWidth: 1,
+        }}
+      />
+      <TouchableOpacity onPress={handleUploadPress}>
+        <Text>Upload Video</Text>
+      </TouchableOpacity>
+      <FlatList
+        data={videos}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => <VideoItem item={item} />}
+      />
+    </View>
   );
 };
 
-export default RadioListScreen1;
+export default VideoUploadScreen;

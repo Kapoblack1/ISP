@@ -30,7 +30,7 @@ const RadioUploadScreen = () => {
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
       });
 
-      if (!result.cancelled) {
+      if (!result.canceled) {
         setSelectedThumbnail(result.uri);
       }
     } catch (error) {
