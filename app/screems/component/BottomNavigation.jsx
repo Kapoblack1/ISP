@@ -65,6 +65,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
     borderTopWidth: 1,
     borderTopColor: '#dddddd',
+    backgroundColor: 'linear-gradient(263.1% 11.89% at 18.02% 9.11%, #FFFFFF 0.19%, rgba(255, 231, 110, 2.90) 100%)'
   },
   tab: {
     flex: 1,

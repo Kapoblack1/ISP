@@ -6,7 +6,7 @@ import { FIREBASE_STORAGE, FIREBASE_DB } from '../../FirebaseConfig';
 import { useNavigation } from '@react-navigation/native';
 
 const Login1 = () => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [imageUrl, setImageUrl] = useState('');
 
@@ -32,18 +32,24 @@ const Login1 = () => {
     try {
       const q = query(
         collection(FIREBASE_DB, 'pessoa'),
-        where('username', '==', username),
+        where('email', '==', email),
         where('password', '==', password)
       );
 
       const querySnapshot = await getDocs(q);
 
       if (querySnapshot.size > 0) {
-        const registeredPersonId  = querySnapshot.docs[0].id;
-        navigation.navigate('Home', { personId: registeredPersonId });
+        const registeredPersonId = querySnapshot.docs[0].id;
 
+        // Validar o domínio do email
+        const validEmailDomain = email.endsWith('@isptec.co.ao');
+        if (validEmailDomain) {
+          navigation.navigate('Home', { personId: registeredPersonId });
+        } else {
+          alert('Invalid email domain');
+        }
       } else {
-        console.log('The user does not exist');
+        alert('The user does not exist');
       }
     } catch (error) {
       console.log('Error:', error);
@@ -60,13 +66,13 @@ const Login1 = () => {
       <View style={styles.card}>
         <Text style={styles.title}>ISPMIDIA</Text>
         <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>Username</Text>
+          <Text style={styles.inputLabel}>Email</Text>
           <TextInput
             style={styles.input}
-            placeholder="Enter your username"
+            placeholder="Enter your email"
             placeholderTextColor={'grey'}
-            value={username}
-            onChangeText={setUsername}
+            value={email}
+            onChangeText={setEmail}
           />
         </View>
         <View style={styles.inputContainer}>
@@ -179,4 +185,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Login1
+export default Login1;
