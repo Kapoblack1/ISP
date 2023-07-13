@@ -104,7 +104,8 @@ const RadioListScreen1 = () => {
         onPress={() => handlePlayVideo(item)}
       />
       </TouchableOpacity>
-       <Text>{item.name}</Text>
+       <Text  style={{ color: 
+        "white"}}>{item.name}</Text>
     </View>
   );
 

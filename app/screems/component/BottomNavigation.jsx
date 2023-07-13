@@ -1,13 +1,20 @@
 import React, { useState } from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from 'react-native-vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
 const BottomNavigation = () => {
   const [activeTab, setActiveTab] = useState('home');
-
+  const navigation = useNavigation();
   const handleHomePress = () => {
     console.log('Home Pressed');
     setActiveTab('home');
+  };
+
+  const handleSearchPress = () => {
+    console.log('Search Pressed');
+    setActiveTab('search');
+    navigation.navigate('PesquisaScreen');
   };
 
   const handleVideoPress = () => {
@@ -31,13 +38,13 @@ const BottomNavigation = () => {
         style={[styles.tab]}
         onPress={handleHomePress}
       >
-        <Ionicons name="home" size={24} color={activeTab === 'home' ? 'red' : '#888888'} />
+        <Ionicons name="home" size={24} color={activeTab === 'home' ? 'rgb(248,159,29)' : 'white'} />
       </TouchableOpacity>
       <TouchableOpacity
         style={[styles.tab]}
         onPress={handleVideoPress}
       >
-        <Ionicons name="videocam" size={24} color={activeTab === 'video' ? 'red' : '#888888'} />
+        <Ionicons name="videocam" size={24} color={activeTab === 'video' ? 'rgb(248,159,29)' : 'white'} />
       </TouchableOpacity>
       <TouchableOpacity
         style={[styles.tab]}
@@ -46,14 +53,20 @@ const BottomNavigation = () => {
         <Ionicons
           name="musical-notes"
           size={24}
-          color={activeTab === 'audio' ? 'red' : '#888888'}
+          color={activeTab === 'audio' ? 'rgb(248,159,29)' : 'white'}
         />
       </TouchableOpacity>
       <TouchableOpacity
         style={[styles.tab]}
         onPress={handleRadioPress}
       >
-        <Ionicons name="radio" size={24} color={activeTab === 'radio' ? 'red' : '#888888'} />
+        <Ionicons name="radio" size={24} color={activeTab === 'radio' ? 'rgb(248,159,29)' : 'white'} />
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[styles.tab]}
+        onPress={handleSearchPress}
+      >
+        <Ionicons name="search" size={24} color={activeTab === 'search' ? 'rgb(248,159,29)' : 'white'} />
       </TouchableOpacity>
     </View>
   );
@@ -62,14 +75,13 @@ const BottomNavigation = () => {
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    backgroundColor: '#f5f5f5',
-    borderTopWidth: 1,
-    borderTopColor: '#dddddd',
-    backgroundColor: 'linear-gradient(263.1% 11.89% at 18.02% 9.11%, #FFFFFF 0.19%, rgba(255, 231, 110, 2.90) 100%)'
+    borderTopWidth: 2,
+    borderTopColor: '#000',
+    backgroundColor: 'rgb(36,36,36)'
   },
   tab: {
     flex: 1,
-    height: 100,
+    height: 70,
     alignItems: 'center',
     justifyContent: 'center',
   },

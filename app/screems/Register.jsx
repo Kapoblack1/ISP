@@ -1,127 +1,199 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';
-import { FIREBASE_DB } from '../../FirebaseConfig';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, KeyboardAvoidingView } from 'react-native';
+import { ref, getDownloadURL } from 'firebase/storage';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { FIREBASE_STORAGE, FIREBASE_DB } from '../../FirebaseConfig';
 import { useNavigation } from '@react-navigation/native';
 
 const Register = () => {
+  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
 
   const navigation = useNavigation();
 
-  const handleRegister = async () => {
-    try {
-      // Verifica se já existe um usuário com o mesmo nome de usuário e senha na base de dados
-      const querySnapshot = await getDocs(
-        query(
-          collection(FIREBASE_DB, 'pessoa'),
-          where('username', '==', username),
-          where('password', '==', password)
-        )
-      );
-  
-      if (!querySnapshot.empty) {
-        console.log('Usuário já existe na base de dados');
-        return;
-      }
-  
-      // Cria um novo documento na coleção 'pessoa' com os dados fornecidos
-      const docRef = await addDoc(collection(FIREBASE_DB, 'pessoa'), {
-        username,
-        password,
-        email,
+  function handleRegister() {
+    navigation.navigate('Register');
+    console.log('Navigating to the registration page...');
+  }
+
+  useEffect(() => {
+    const imageRef = ref(FIREBASE_STORAGE, '/imagens/logo.png');
+    getDownloadURL(imageRef)
+      .then((url) => {
+        setImageUrl(url);
+      })
+      .catch((error) => {
+        console.log('Error getting image URL from Firebase Storage:', error);
       });
-      console.log('Nova pessoa criada com ID:', docRef.id);
-      navigation.navigate('VideoUploadScreen');
+  }, []);
+
+  const handleLogin = async () => {
+    try {
+      const q = query(
+        collection(FIREBASE_DB, 'pessoa'),
+        where('email', '==', email),
+        where('password', '==', password)
+      );
+
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.size > 0) {
+        const registeredPersonId = querySnapshot.docs[0].id;
+
+        // Validar o domínio do email
+        const validEmailDomain = email.endsWith('@isptec.co.ao');
+        if (validEmailDomain) {
+          navigation.navigate('Home', { personId: registeredPersonId });
+        } else {
+          alert('Invalid email domain');
+        }
+      } else {
+        alert('The user does not exist');
+      }
     } catch (error) {
-      console.log('Erro ao criar uma nova pessoa:', error);
+      console.log('Error:', error);
     }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Register</Text>
-      <View style={styles.inputContainer}>
-        <Text style={styles.inputLabel}>Email</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter your email"
-          placeholderTextColor={'grey'}
-          value={email}
-          onChangeText={setEmail}
-        />
+    <KeyboardAvoidingView style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      {imageUrl ? (
+        <Image source={{ uri: imageUrl }} style={styles.logo} />
+      ) : (
+        <Text>Loading image...</Text>
+      )}
+
+      <View style={styles.card}>
+        <Text style={styles.title}>Registar</Text>
+
+        <View style={styles.inputContainer}>
+          <Text style={styles.inputLabel}>Email</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            placeholderTextColor={'white'}
+            value={email}
+            onChangeText={(text) => setEmail(text)}
+          />
+        </View>
+        <View style={styles.inputContainer}>
+          <Text style={styles.inputLabel}>Password</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Password"
+            placeholderTextColor={'white'}
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+          />
+        </View>
+        <View style={styles.inputContainer}>
+          <Text style={styles.inputLabel}>Username</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Nome do Usuario"
+            placeholderTextColor={'white'}
+            value={username}
+            onChangeText={setUsername}
+          />
+        </View>
+
+        <TouchableOpacity style={styles.button} onPress={handleRegister}>
+            <Text style={styles.buttonText}>Register</Text>
+          </TouchableOpacity>
       </View>
-      <View style={styles.inputContainer}>
-        <Text style={styles.inputLabel}>Password</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter your password"
-          placeholderTextColor={'grey'}
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-        />
-      </View>
-      <View style={styles.inputContainer}>
-        <Text style={styles.inputLabel}>Username</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter your username"
-          placeholderTextColor={'grey'}
-          value={username}
-          onChangeText={setUsername}
-        />
-      </View>
-      <TouchableOpacity style={styles.button} onPress={handleRegister}>
-        <Text style={styles.buttonText}>Register</Text>
-      </TouchableOpacity>
-    </View>
+
+      
+
+    </KeyboardAvoidingView>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    paddingTop: "50%",
     paddingHorizontal: 10,
-    backgroundColor: '#FFF7D1',
+    alignItems: 'center',
+    backgroundColor: 'rgb(36,36,36)',
+  },
+  container1: {
+    flex: 1,
+  },
+  containerLogo: {
+    justifyContent: "center",
+    alignContent: "center",
+    alignItems: "center",
+    backgroundColor: 'rgb(36,36,36)',
   },
   title: {
-    fontSize: 20,
+    fontSize: 24,
     marginBottom: 20,
     textAlign: 'center',
+    fontWeight: 'bold',
+    color: "white"
+  },
+  logo: {
+    width: 200,
+    height: 130,
+  },
+  card: {
+    width: '90%',
+    backgroundColor: 'rgb(0,0,0)',
+    borderRadius: 10,
+    padding: 20,
+    marginBottom: 50,
+    shadowOffset: {
+      width: 1,
+      height: 3,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    marginTop: -30,
   },
   inputContainer: {
-    marginBottom: 10,
+    marginBottom: 15,
   },
   inputLabel: {
     fontSize: 16,
     marginBottom: 5,
+    fontWeight: 'bold',
+
   },
   input: {
-    width: '100%',
+
     height: 40,
     borderWidth: 1,
-    borderColor: 'black',
-    borderRadius: 0,
+    borderColor: 'rgb(248,159,29)',
+    borderRadius: 8,
     paddingHorizontal: 10,
+
+
   },
   button: {
     width: '100%',
-    marginTop: 10,
-    paddingVertical: 10,
+    marginTop: 20,
+    paddingVertical: 12,
     paddingHorizontal: 20,
-    backgroundColor: '#FFF7D1',
-    borderRadius: 0,
+    backgroundColor: 'rgb(36,36,36)',
+    borderRadius: 8,
   },
   buttonText: {
-    color: 'black',
+    color: 'white',
     fontSize: 16,
     textAlign: 'center',
+    fontWeight: 'bold',
   },
 });
+
+//rgb(36,36,36)
+//rgb(18,18,18)
+//rgb(0,0,0)
 
 export default Register;

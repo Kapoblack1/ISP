@@ -1,30 +1,48 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Image, Alert } from 'react-native';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { getStorage, ref, uploadBytes } from 'firebase/storage';
-import { FIREBASE_DB, FIREBASE_STORAGE } from '../../FirebaseConfig';
-import ImageUploadScreen from './ImageUploadScreen';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Button, Alert, TextInput } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { getFirestore, collection, onSnapshot, query, orderBy, doc, getDoc, updateDoc, addDoc, where } from 'firebase/firestore';
+import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { FIREBASE_DB, FIREBASE_STORAGE } from '../../FirebaseConfig';
+import * as DocumentPicker from 'expo-document-picker';
+import { useNavigation } from '@react-navigation/native';
+import { v4 as uuidv4 } from 'uuid';
+import { Ionicons } from '@expo/vector-icons';
+import AudioUploadScreen from './AudioUploadScreen';
+import VideoUploadScreen from './VideoUploadScreen';
 
-const User = ({ route }) => {
+export default function Profile({ route }) {
+  const navigation = useNavigation();
   const { personId } = route.params;
   const [personName, setPersonName] = useState('');
-  const [showImageUpload, setShowImageUpload] = useState(false);
-  const [image, setImage] = useState(null);
-  const [uploading, setUploading] = useState(false);
+  const [button1Active, setButton1Active] = useState(false);
+  const [button2Active, setButton2Active] = useState(false);
+  const [button3Active, setButton3Active] = useState(false)
+  const [personSurname, setPersonSurname] = useState('');
+  const [person, setPerson] = useState('');
   const [profileImageUrl, setProfileImageUrl] = useState(null);
 
-  const getPermission = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert(
-        'Permissão negada',
-        'Desculpe, precisamos da permissão da biblioteca de mídia para funcionar!'
-      );
-    }
-  };
+  useEffect(() => {
+    const fetchPersonData = async () => {
+      try {
+        const docRef = doc(FIREBASE_DB, 'pessoa', personId);
+        const docSnapshot = await getDoc(docRef);
 
-  const pickImage = async () => {
+        if (docSnapshot.exists()) {
+          const personData = docSnapshot.data();
+          setPerson(personData);
+          setPersonName(personData.username);
+          setProfileImageUrl(personData.foto || null);
+        }
+      } catch (error) {
+        console.log('Error fetching person data:', error);
+      }
+    };
+
+    fetchPersonData();
+  }, [personId]);
+
+  const handleChangeProfilePicture = async () => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -33,103 +51,307 @@ const User = ({ route }) => {
         quality: 1,
       });
 
-      if (!result.canceled) {
-        setImage(result.uri);
-      }
-    } catch (error) {
-      console.log('Erro ao selecionar a imagem:', error);
-    }
-  };
+      if (!result.canceled && result.assets.length > 0) {
+        const selectedAsset = result.assets[0];
+        const response = await fetch(selectedAsset.uri);
+        const blob = await response.blob();
 
-  useEffect(() => {
-    const fetchInformation = async () => {
-      try {
-        const docRef = doc(FIREBASE_DB, 'pessoa', personId);
-        const docSnapshot = await getDoc(docRef);
+        // Generate a unique filename using a timestamp
+        const filename = `${Date.now()}.jpg`;
 
-        if (docSnapshot.exists()) {
-          const data = docSnapshot.data();
-          setPersonName(data.username);
-          setProfileImageUrl(data.foto || null);
+        const storageRef = ref(FIREBASE_STORAGE, `profilePictures/${filename}`);
+        const uploadTask = uploadBytes(storageRef, blob);
+
+        await uploadTask;
+
+        // Get the download URL of the uploaded image
+        const downloadURL = await getDownloadURL(storageRef);
+
+        // Delete the previous profile picture from the storage
+        if (profileImageUrl) {
+          const previousImageRef = ref(FIREBASE_STORAGE, getFilenameFromURL(profileImageUrl));
+          try {
+            await deleteObject(previousImageRef);
+          } catch (error) {
+            console.log('Error deleting previous profile picture:', error);
+          }
         }
-      } catch (error) {
-        console.log('Erro ao buscar o nome da pessoa:', error);
-      }
-    };
 
-    getPermission();
-    fetchInformation();
-  }, [personId]);
+        // Update the profileImageUrl state with the new image URL
+        setProfileImageUrl(downloadURL);
 
-  const uploadImage = async () => {
-    if (!image) {
-      Alert.alert('Erro', 'Nenhuma imagem selecionada');
-      return;
-    }
-
-    setUploading(true);
-
-    try {
-      const response = await fetch(image);
-      const blob = await response.blob();
-      alert('Respose',response)
-      // Gerar um nome de arquivo único usando um timestamp
-      const filename = `${Date.now()}.jpg`;
-      alert('filename',filename)
-      const storageRef = ref(FIREBASE_STORAGE, `fotoPerfil/${filename}`);
-      const uploadTask = uploadBytes(storageRef, blob);
-      
-      await uploadTask;
-      alert('uploadTask',uploadTask)
-      try {
+        // Update the profile image URL in the database
         const docRef = doc(FIREBASE_DB, 'pessoa', personId);
         await updateDoc(docRef, {
-          foto: photoUrl,
+          foto: downloadURL,
         });
-      } catch (error) {
-        console.log('Erro ao atualizar a foto da pessoa:', error);
-      }
-      alert('photoUrl',photoUrl)
-      
-      const photoUrl = await storageRef.getDownloadURL();
-      updatePersonPhoto(photoUrl);
-      alert(ola)
-      Alert.alert('Sucesso', 'Imagem enviada com sucesso!');
-      setImage(null);
-    } catch (error) {
-      console.log('Erro ao enviar a imagem:', error);
-      Alert.alert('Erro', 'Falha ao enviar a imagem');
-    }
 
-    setUploading(false);
+        Alert.alert('Success', 'Profile picture updated!');
+      }
+    } catch (error) {
+      console.log('Error changing profile picture:', error);
+      Alert.alert('Error', 'Failed to change profile picture');
+    }
   };
 
-  const updatePersonPhoto = async (photoUrl) => {
-    try {
-      const docRef = doc(FIREBASE_DB, 'pessoa', personId);
-      await updateDoc(docRef, {
-        foto: photoUrl,
-      });
-    } catch (error) {
-      console.log('Erro ao atualizar a foto da pessoa:', error);
-    }
+  const getFilenameFromURL = (url) => {
+    const startIndex = url.lastIndexOf('/') + 1;
+    return url.substring(startIndex);
+  };
+
+  function logout() {
+    navigation.navigate('Login1');
+  }
+
+  function Home() {
+    navigation.navigate('Home', { personId: personId });
+  }
+
+  const handleButton1Click = () => {
+    setButton1Active(true);
+    setButton2Active(false);
+    setButton3Active(false);
+  };
+
+  const handleButton2Click = () => {
+    setButton1Active(false);
+    setButton2Active(true);
+    setButton3Active(false);
+  };
+
+  const handleButton3Click = () => {
+    setButton1Active(false);
+    setButton2Active(false);
+    setButton3Active(true);
+  };
+
+  const Componente1 = () => {
+    return (
+      <View>
+        <Text>Componente 1 Ativo</Text>
+      </View>
+    );
+  };
+
+  const Componente2 = () => {
+    const [audios, setAudios] = useState([]);
+
+    useEffect(() => {
+      const fetchAudios = async () => {
+        try {
+          const audiosCollectionRef = collection(FIREBASE_DB, 'audio');
+          const q = query(audiosCollectionRef, where('autor', '==', person.username), orderBy('timestamp', 'desc'));
+
+          const unsubscribe = onSnapshot(q, (snapshot) => {
+            const updatedAudios = snapshot.docs.map((doc) => ({
+              id: doc.id,
+              ...doc.data(),
+            }));
+
+            setAudios(updatedAudios);
+          });
+
+          return () => unsubscribe();
+        } catch (error) {
+          console.log('Error fetching audios:', error);
+        }
+      };
+
+      fetchAudios();
+    }, [person.username]);
+
+    return (
+      <View>
+        {audios.map((audio) => (
+          <Text key={audio.id}>{audio.name}</Text>
+        ))}
+      </View>
+    );
   };
 
   return (
-    <View>
-      <Text>{personName}</Text>
-      <TouchableOpacity onPress={pickImage}>
-        <Image source={require('./teste.jpg')} style={{ width: 24, height: 24 }} />
-      </TouchableOpacity>
-      {image && (
-        <Image source={{ uri: image }} style={{ width: 200, height: 200 }} />
-      )}
-      <TouchableOpacity onPress={uploadImage} disabled={uploading}>
-        <Text>{uploading ? 'Enviando...' : 'Enviar Imagem'}</Text>
-      </TouchableOpacity>
-      {showImageUpload && <ImageUploadScreen />}
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={Home}>
+          <Ionicons style={styles.iconBack} name="chevron-back-outline" size={30} color="white" />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={logout}>
+          <Ionicons name="log-out-outline" size={30} color="white" />
+        </TouchableOpacity>
+      </View>
+
+      <View>
+        <TouchableOpacity onPress={handleChangeProfilePicture}>
+          <Image source={{ uri: profileImageUrl }} style={styles.profileImage} />
+        </TouchableOpacity>
+        <Text style={styles.label}>{personName}</Text>
+      </View>
+      <View style={styles.buttons}>
+        <TouchableOpacity
+          style={[styles.button, button1Active && styles.activeButton]}
+          onPress={handleButton1Click}
+        >
+          <Text style={styles.buttonText}>Upload áudio</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.button, button2Active && styles.activeButton]}
+          onPress={handleButton2Click}
+        >
+          <Text style={styles.buttonText}> Mideas</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.button, button3Active && styles.activeButton]}
+          onPress={handleButton3Click}
+        >
+          <Text style={styles.buttonText}>Upload Video</Text>
+        </TouchableOpacity>
+      </View>
+      <View>
+        {button3Active && <VideoUploadScreen person={person} />}
+        {button1Active && <AudioUploadScreen person={person} personId={personId} />}
+        {button2Active && <Componente2 person={person} personId={personId} />}
+      </View>
     </View>
   );
-};
+}
 
-export default User;
+const styles = StyleSheet.create({
+  container: {
+    alignItems: 'center',
+    backgroundColor: 'rgb(36,36,36)',
+    flex: 1,
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 30,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '90%',
+    marginTop: '15%',
+  },
+  options: {
+    alignItems: 'center',
+    flexDirection: 'row',
+  },
+  profileImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 8,
+    marginBottom: 20,
+    borderLeftWidth: 10,
+  },
+  label: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: 'white',
+  },
+  info: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: 'grey',
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  formContainer: {
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  input: {
+    width: 200,
+    height: 35,
+    borderWidth: 1,
+    borderColor: 'gray',
+    borderRadius: 5,
+    marginBottom: 10,
+    paddingLeft: 10,
+    backgroundColor: 'pink',
+  },
+  thumbnailButton: {
+    backgroundColor: 'pink',
+    width: 200,
+    height: 35,
+    borderRadius: 5,
+    marginBottom: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'gray',
+  },
+  thumbnailImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+    borderRadius: 5,
+  },
+  thumbnailButtonText: {
+    color: 'white',
+  },
+  itemButton: {
+    backgroundColor: 'pink',
+    width: 200,
+    height: 35,
+    borderRadius: 5,
+    marginBottom: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'gray',
+  },
+  itemButtonText: {
+    color: 'white',
+  },
+  uploadButton: {
+    backgroundColor: 'pink',
+    width: '80%',
+    height: 40,
+    borderRadius: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  uploadButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    padding: 10,
+  },
+  activeButton: {
+    backgroundColor: '#FE496C',
+  },
+  fundo: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  borderImage: {
+    backgroundColor: 'pink',
+    width: 120,
+    height: 120,
+    borderRadius: 100,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  button: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: 'rgb(18,18,18)',
+    marginHorizontal: 5,
+    borderRadius: 5,
+  },
+  activeButton: {
+    backgroundColor: 'rgb(248,159,29)',
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+  },
+  buttons: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+});

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, Alert, TextInput, Image, FlatList } from 'react-native';
+import { View, Text, TouchableOpacity, Alert, TextInput, Image, FlatList, StyleSheet, Button } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, getDocs } from 'firebase/firestore';
@@ -157,7 +157,7 @@ const VideoUploadScreen = () => {
         {selectedVideo === item.videoURL ? (
           <Video
             source={{ uri: item.videoURL }}
-            style={{ width: 300, height: 300 }}
+            style={{ width: 150, height: 200 }}
             resizeMode="contain"
             useNativeControls
           />
@@ -166,20 +166,17 @@ const VideoUploadScreen = () => {
             <Image source={{ uri: item.thumbnailURL }} style={{ width: 200, height: 200 }} />
           </TouchableOpacity>
         )}
-        <Text>Description: {item.description}</Text>
-        <Text>Video URL: {item.videoURL}</Text>
-        <Text>Thumbnail URL: {item.thumbnailURL}</Text>
       </View>
     );
   };
 
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <TouchableOpacity onPress={pickVideo} style={{ marginBottom: 16 }}>
-        <Text>Select Video</Text>
+    <View style={{ flex: 1, alignContent:"center", alignItems:"center"}}>
+      <TouchableOpacity onPress={pickVideo} style={styles.button1}>
+        <Text style={{ color: 'white' }}>Selecione Video</Text>
       </TouchableOpacity>
       {videoUri && (
-        <View style={{ width: 300, height: 300 }}>
+        <View style={{ width: 150, height: 150 }}>
           <Video
             ref={videoRef}
             source={{ uri: videoUri }}
@@ -188,40 +185,47 @@ const VideoUploadScreen = () => {
           />
         </View>
       )}
-      <TouchableOpacity onPress={handleTogglePlay} style={{ marginTop: 16 }}>
-        <Text>{isPlaying ? 'Pause' : 'Play'}</Text>
+      <TouchableOpacity onPress={handleTogglePlay} style={styles.button1}>
+        <Text style={{ color: 'white' }}>{isPlaying ? 'Pause' : 'Play'}</Text>
       </TouchableOpacity>
-      <TouchableOpacity onPress={handleThumbnailSelection} style={{ marginBottom: 16 }}>
-        <Text>Select Thumbnail</Text>
+      <TouchableOpacity onPress={handleThumbnailSelection} style={styles.button1}>
+        <Text style={{ color: 'white' }}>Selecione a thumbnail</Text>
       </TouchableOpacity>
-      {thumbnailUri && (
-        <View style={{ marginBottom: 16 }}>
-          <Text>Selected Thumbnail:</Text>
-          <Image source={{ uri: thumbnailUri }} style={{ width: 200, height: 200 }} />
-        </View>
-      )}
       <TextInput
         value={description}
         onChangeText={setDescription}
-        placeholder="Enter description"
-        style={{
-          marginBottom: 16,
-          paddingHorizontal: 10,
-          height: 40,
-          borderColor: 'gray',
-          borderWidth: 1,
-        }}
+        placeholder="Selecione a descrição"
+        style={styles.input}
+        placeholderTextColor={"white"}
       />
-      <TouchableOpacity onPress={handleUploadPress}>
-        <Text>Upload Video</Text>
+      <TouchableOpacity onPress={handleUploadPress} style={styles.button1}>
+        <Text style={{ color: 'white' }}>Upload Video</Text>
       </TouchableOpacity>
-      <FlatList
-        data={videos}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <VideoItem item={item} />}
-      />
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  input: {
+    width: '100%',
+    height: 40,
+    borderWidth: 1,
+    borderColor: 'rgb(248,159,29)',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    color: 'white',
+    margin: 10,
+  },
+  button1: {
+    width: '100%',
+    marginTop: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    backgroundColor: 'rgb(0,0,0)',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgb(248,159,29)',
+  }
+});
 
 export default VideoUploadScreen;

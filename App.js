@@ -21,6 +21,13 @@ import RadioListScreen1 from './app/screems/RadioListScreen1';
 import { Image, View, Text } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import User from './app/screems/User';
+import Artistas from './app/screems/Artistas';
+import AudioDownloadScreen from './app/screems/AudioDownloadScreen';
+import PesquisaScreen from './app/screems/PesquisaScreen';
+import Search from './app/screems/Search';
+import AudioPlayerScreen from './app/screems/AudioPlayerScreen';
+import MusicPage from './app/screems/MusicPage';
+import PlayerAudio from './app/screems/component/PlayerAudio';
 
 const Stack = createStackNavigator();
 
@@ -31,7 +38,7 @@ const App = () => {
       <Stack.Navigator initialRouteName='Login1'>
         <Stack.Screen name="Login" component={Login} options={{ headerShown: true }} />
         <Stack.Screen name="UserPage" component={UserPage} options={{ headerShown: true }} />
-        <Stack.Screen name="User" component={User} options={{ headerShown: true }} />
+        <Stack.Screen name="User" component={User} options={{ headerShown: false }} />
         <Stack.Screen name="ImageUploadScreen" component={ImageUploadScreen} options={{ headerShown: true }} />
         <Stack.Screen name="VideoUpload" component={VideoUploadPage} options={{ headerShown: true }} />
         <Stack.Screen name="UploadScreen" component={UploadScreen} options={{ headerShown: true }} />
@@ -39,17 +46,25 @@ const App = () => {
         <Stack.Screen name="VideoListScreen" component={VideoListScreen} options={{ headerShown: true }} />
         <Stack.Screen name="AudioUploadScreen" component={AudioUploadScreen} options={{ headerShown: true }} />
         <Stack.Screen name="AudioListScreen" component={AudioListScreen} options={{ headerShown: true }} />
-        <Stack.Screen name="RadioListScreen" component={RadioListScreen} options={{ headerShown: true }} /><Stack.Screen name="RadioListScreen1" component={RadioListScreen1} options={{ headerShown: true }} />
+        <Stack.Screen name="RadioListScreen" component={RadioListScreen} options={{ headerShown: true }} />
+        <Stack.Screen name="RadioListScreen1" component={RadioListScreen1} options={{ headerShown: true }} />
         <Stack.Screen name="RadioUploadScreen" component={RadioUploadScreen} options={{ headerShown: true }} />
         <Stack.Screen name="Login1" component={Login1} options={{ headerShown: false }} />
-        <Stack.Screen name="Register" component={Register} options={{ headerShown: true }} />
+        <Stack.Screen name="AudioDownloadScreen" component={AudioDownloadScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="Register" component={Register} options={{ headerShown: false }} />
+        <Stack.Screen name="Artistas" component={Artistas} options={{ headerShown: true }} />
+        <Stack.Screen name="MusicPage" component={MusicPage} options={{ headerShown: true }} />
+        <Stack.Screen name="AudioPlayerScreen" component={AudioPlayerScreen} options={{ headerShown: true }} />
+        <Stack.Screen name="PlayerAudio" component={PlayerAudio} options={{ headerShown: true }} />
+        <Stack.Screen name="PesquisaScreen" component={PesquisaScreen} options={{ headerShown: true }} />
+
         <Stack.Screen name="Home" component={Home}
           options={{
-            headerShown: true,
             headerTitle: ' ',
             headerStyle: styles.headerStyle,
             headerLeft: null,
-            headerTintColor: 'white'
+            headerTintColor: 'white',
+            headerShown: false
           }} />
         <Stack.Screen name="VideoListScreenScroll" component={VideoListScreenScroll} options={{ headerShown: true }} />
       </Stack.Navigator>
@@ -60,7 +75,7 @@ const App = () => {
 const styles = StyleSheet.create({
   headerStyle: {
     backgroundColor: 'linear-gradient(23.1% 11.89% at 18.02% 8.11%, #FFFFFF 0.19%, rgba(255, 237, 86, 0.70) 100%)',
-    height:50
+    height: 50
   },
   profileImage: {
     width: 40,

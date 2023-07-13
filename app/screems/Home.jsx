@@ -9,20 +9,31 @@ import BottomNavigation from './component/BottomNavigation';
 import RadioListScreen from './RadioListScreen';
 import RadioListScreen1 from './RadioListScreen1';
 import { useNavigation } from '@react-navigation/native';
+import Artistas from './Artistas';
+import AudioListScreen1 from './AudioListScreen1';
+import PlayerAudio from './component/PlayerAudio';
 
 const Home = ({ route }) => {
   const { personId } = route.params;
   const [videos, setVideos] = useState([]);
   const [personName, setPersonName] = useState('');
+  const [foto, setPersonFoto] = useState('');
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [imageUrl, setImageUrl] = useState('');
   const [imageUrl1, setImageUrl1] = useState('');
   const navigation = useNavigation();
   const registeredPersonId = personId;
 
+  const [audio, setAudio] = useState('');
+
+  const childToParent = (childdata) => {
+    setAudio(childdata);
+
+  }
+
   useEffect(() => {
     const imageRef = ref(FIREBASE_STORAGE, '/imagens/logo.png');
-    const imageRef1 = ref(FIREBASE_STORAGE, '/imagens/person.png');
+
     subscribeToVideos();
     const fetchInformation = async () => {
       try {
@@ -32,7 +43,7 @@ const Home = ({ route }) => {
         if (docSnapshot.exists()) {
           const data = docSnapshot.data();
           setPersonName(data.username);
-
+          setPersonFoto(data.foto);
         }
       } catch (error) {
         console.log('Error fetching person name:', error);
@@ -42,14 +53,6 @@ const Home = ({ route }) => {
     getDownloadURL(imageRef)
       .then((url) => {
         setImageUrl(url);
-      })
-      .catch((error) => {
-        console.log('Error getting image URL from Firebase Storage:', error);
-      });
-
-    getDownloadURL(imageRef1)
-      .then((url) => {
-        setImageUrl1(url);
       })
       .catch((error) => {
         console.log('Error getting image URL from Firebase Storage:', error);
@@ -93,10 +96,10 @@ const Home = ({ route }) => {
           />
         ) : (
           <TouchableOpacity onPress={handlePress}>
-            <Image source={{ uri: item.thumbnailURL }} style={{ width: 270, height: 200 }} />
+            <Image source={{ uri: item.thumbnailURL }} style={{ width: 270, height: 200, }} />
           </TouchableOpacity>
         )}
-        <Text> {item.description}</Text>
+        <Text style={styles.text}> {item.description}</Text>
       </View>
     );
   };
@@ -108,8 +111,8 @@ const Home = ({ route }) => {
         <Text style={styles.home}>Home</Text>
         <TouchableOpacity onPress={() => { navigation.navigate('User', { personId: registeredPersonId }) }}>
           <View style={styles.Person}>
-            <Image source={{ uri: imageUrl1 }} style={styles.logo1} />
-            <Text>{personName}</Text>
+            <Image source={{ uri: foto }} style={styles.logo1} />
+            <Text style={styles.text}>{personName}</Text>
           </View>
         </TouchableOpacity>
       </View>
@@ -122,15 +125,15 @@ const Home = ({ route }) => {
         </ScrollView>
         <Text style={styles.title}>Áudio</Text>
         <ScrollView horizontal style={styles.space}>
-          <AudioListScreenScroll />
+          <AudioListScreen1 childToParent={childToParent} />
         </ScrollView>
         <Text style={styles.title}>Rádio</Text>
         <RadioListScreen1></RadioListScreen1>
-        <View style={styles.bottomNavigationContainer}>
-
-        </View>
+        <Artistas />
       </ScrollView>
+      <PlayerAudio audio={audio}/>
       <BottomNavigation />
+      
     </View>
   );
 };
@@ -138,30 +141,34 @@ const Home = ({ route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'linear-gradient(23.1% 11.89% at 18.02% 8.11%, #FFFFFF 0.19%, rgba(255, 237, 86, 0.70) 100%)',
-  },
+    backgroundColor: 'rgb(18,18,18)',
+
+  },//rgb(36,36,36)
   header: {
     flexDirection: 'row',
     height: 85,
     justifyContent: 'space-around',
     alignContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'linear-gradient(23.1% 11.89% at 18.02% 8.11%, #FFFFFF 0.19%, rgba(255, 237, 86, 0.70) 100%)',
+    backgroundColor: 'rgb(18,18,18)',
+    marginTop: "10%"
 
   },
   bottomNavigationContainer: {
     position: 'absolute',
     bottom: 0,
     width: '100%',
-    backgroundColor:'#FFF7D1'
+    backgroundColor: '#FFF7D1'
   },
   title: {
     fontSize: 24,
     padding: 10,
     fontWeight: 700,
+    color: "white"
   },
   scrolls: {
     paddingLeft: 10,
+    marginBottom:20,
   },
   space: {
     paddingBottom: 20,
@@ -172,18 +179,22 @@ const styles = StyleSheet.create({
     top: 15
 
   },
-  home:{
+  home: {
     top: 13,
-    right:-15
+    right: -15,
+    color: "white"
   },
-  
+
   logo1: {
     width: 30,
     height: 30,
   },
-  Person:{
-    alignItems: 'center'
+  Person: {
+    alignItems: 'center',
+    color: "white"
 
+  }, text: {
+    color: "white"
   }
 
 });

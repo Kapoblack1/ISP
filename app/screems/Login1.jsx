@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, KeyboardAvoidingView } from 'react-native';
 import { ref, getDownloadURL } from 'firebase/storage';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { FIREBASE_STORAGE, FIREBASE_DB } from '../../FirebaseConfig';
@@ -57,7 +57,8 @@ const Login1 = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView  style={styles.container}
+    behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       {imageUrl ? (
         <Image source={{ uri: imageUrl }} style={styles.logo} />
       ) : (
@@ -69,8 +70,8 @@ const Login1 = () => {
           <Text style={styles.inputLabel}>Email</Text>
           <TextInput
             style={styles.input}
-            placeholder="Enter your email"
-            placeholderTextColor={'grey'}
+            placeholder="Email"
+            placeholderTextColor={'white'}
             value={email}
             onChangeText={setEmail}
           />
@@ -79,26 +80,26 @@ const Login1 = () => {
           <Text style={styles.inputLabel}>Password</Text>
           <TextInput
             style={styles.input}
-            placeholder="Enter your password"
-            placeholderTextColor={'grey'}
+            placeholder="Password"
+            placeholderTextColor={'white'}
             secureTextEntry
             value={password}
             onChangeText={setPassword}
           />
         </View>
         <TouchableOpacity style={styles.button1} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Sign In</Text>
+          <Text style={styles.buttonText}>Login</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.button} onPress={handleRegister}>
           <Text style={styles.registerText}>
-            Don't have an account?{' '}
+           Não tem conta?{' '}
             <Text style={styles.registerLink} onPress={handleRegister}>
-              Register now
+              Registar agora
             </Text>
           </Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -108,7 +109,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 10,
-    backgroundColor: 'linear-gradient(23.1% 11.89% at 18.02% 8.11%, #FFFFFF 0.19%, rgba(255, 237, 86, 0.70) 100%)',
+    backgroundColor: "rgb(36,36,36)",
+  },
+  container1: {
+    flex: 1,
   },
   logo: {
     width: 200,
@@ -117,17 +121,16 @@ const styles = StyleSheet.create({
   },
   card: {
     width: '80%',
-    backgroundColor: '#FFF7D1',
+    backgroundColor: 'rgb(0,0,0)',
     borderRadius: 10,
     padding: 20,
-    shadowColor: '#000000',
     marginBottom: 50,
     shadowOffset: {
-      width: 1,
-      height: 3,
+      width: 3,
+      height: 6,
     },
     shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    shadowRadius: 5.84,
     elevation: 5,
     marginTop: -30,
   },
@@ -137,6 +140,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     alignContent: 'center',
     alignItems: 'center',
+    color:"white"
   },
   inputContainer: {
     marginBottom: 10,
@@ -149,28 +153,29 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 40,
     borderWidth: 1,
-    borderColor: 'black',
-    borderRadius: 0,
+    borderColor: 'rgb(248,159,29)',
+    borderRadius: 8,
     paddingHorizontal: 10,
+    color:"white"
   },
   button: {
     width: '100%',
     marginTop: 10,
     paddingVertical: 10,
     paddingHorizontal: 20,
-    backgroundColor: '#FFF7D1',
+    backgroundColor: 'rgb(0,0,0)',
     borderRadius: 0,
   },
   button1: {
     width: '100%',
-    marginTop: 10,
-    paddingVertical: 10,
+    marginTop: 20,
+    paddingVertical: 12,
     paddingHorizontal: 20,
-    backgroundColor: '#FFF7D1',
-    borderRadius: 0,
+    backgroundColor: 'rgb(36,36,36)',
+    borderRadius: 8,
   },
   buttonText: {
-    color: 'black',
+    color: 'white',
     fontSize: 16,
     textAlign: 'center',
     alignItems: 'center',
@@ -178,11 +183,15 @@ const styles = StyleSheet.create({
   },
   registerText: {
     marginTop: -5,
+    color:"white"
   },
   registerLink: {
     fontWeight: 'bold',
-    color: 'blue',
+    color: 'rgb(248,159,29)',
   },
 });
+//rgb(36,36,36)
+//rgb(18,18,18)
+//rgb(0,0,0)
 
 export default Login1;

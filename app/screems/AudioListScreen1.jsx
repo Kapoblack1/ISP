@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { FlatList, Image, Text, TouchableOpacity, View, StyleSheet } from 'react-native';
 import { collection, getDocs, query, getFirestore } from 'firebase/firestore';
-import { FIREBASE_DB, FIREBASE_STORAGE } from '../../../FirebaseConfig';
+import { FIREBASE_DB, FIREBASE_STORAGE } from '../../FirebaseConfig';
 import { useNavigation } from '@react-navigation/native';
 
-export default function AudioListScreen({ childToParent }) {
+export default function AudioListScreen1({childToParent}) {
   const [audios, setAudios] = useState([]);
 
   const navigation = useNavigation();
@@ -33,43 +33,39 @@ export default function AudioListScreen({ childToParent }) {
   }
 
   return (
-    <View style={styles.container}>
+    <View>
       <FlatList
         data={audios}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <TouchableOpacity onPress={() => handleClick(item)}>
-            <View style={styles.itemContainer}>
-              <Image source={{ uri: item.imageDownloadURL }} style={styles.itemImage} />
-              <Text style={styles.itemTitle}>{item.titulo}</Text>
-            </View>
-          </TouchableOpacity>
+          <View >
+            <TouchableOpacity onPress={() => handleClick(item)}>
+              <Image source={{ uri: item.imageDownloadURL }} style={styles.item} />
+              <Text style={styles.titulo}>{item.titulo}</Text>
+            </TouchableOpacity>
+          </View>
         )}
+        horizontal
+        showsHorizontalScrollIndicator={true}
       />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: 'rgb(36,36,36)',
-  },
-  itemContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 10,
-    paddingHorizontal: 20,
-  },
-  itemImage: {
-    width: 100,
-    height: 100,
+  item: {
+    width: 150,
+    height: 150,
+    padding: 10,
+    margin: 10,
     borderRadius: 10,
   },
-  itemTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: 'white',
+  horizontalArtist: {
+    fontSize: 14,
+    color: 'pink',
     marginLeft: 10,
+  }, 
+  titulo: {
+   color: "white"
   },
 });
