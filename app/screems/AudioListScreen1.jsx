@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { FlatList, Image, Text, TouchableOpacity, View, StyleSheet } from 'react-native';
-import { collection, getDocs, query, getFirestore } from 'firebase/firestore';
+import { collection, getDocs, query, getFirestore, where } from 'firebase/firestore';
 import { FIREBASE_DB, FIREBASE_STORAGE } from '../../FirebaseConfig';
 import { useNavigation } from '@react-navigation/native';
 
-export default function AudioListScreen1({childToParent}) {
+export default function AudioListScreen1({ childToParent }) {
   const [audios, setAudios] = useState([]);
 
   const navigation = useNavigation();
@@ -19,8 +19,9 @@ export default function AudioListScreen1({childToParent}) {
 
   const fetchAudios = async () => {
     try {
-      const audiosCollection = collection(getFirestore(), 'audio');
-      const querySnapshot = await getDocs(audiosCollection);
+      const firestore = getFirestore();
+      const audiosCollection = collection(firestore, 'audio');
+      const querySnapshot = await getDocs(query(audiosCollection, where('tipo', '==', 'Áudio')));
       const audiosData = querySnapshot.docs.map((doc) => doc.data());
       setAudios(audiosData);
     } catch (error) {
@@ -38,7 +39,7 @@ export default function AudioListScreen1({childToParent}) {
         data={audios}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <View >
+          <View>
             <TouchableOpacity onPress={() => handleClick(item)}>
               <Image source={{ uri: item.imageDownloadURL }} style={styles.item} />
               <Text style={styles.titulo}>{item.titulo}</Text>
@@ -64,8 +65,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: 'pink',
     marginLeft: 10,
-  }, 
+  },
   titulo: {
-   color: "white"
+    color: 'white'
   },
 });

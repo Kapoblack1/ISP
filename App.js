@@ -43,7 +43,12 @@ const App = () => {
         <Stack.Screen name="VideoUpload" component={VideoUploadPage} options={{ headerShown: true }} />
         <Stack.Screen name="UploadScreen" component={UploadScreen} options={{ headerShown: true }} />
         <Stack.Screen name="VideoUploadScreen" component={VideoUploadScreen} options={{ headerShown: true }} />
-        <Stack.Screen name="VideoListScreen" component={VideoListScreen} options={{ headerShown: true }} />
+        <Stack.Screen name="VideoListScreen" component={VideoListScreen}  options={{
+            headerTitle: 'Videos',
+            headerStyle: styles.headerStyle,
+            headerTintColor: 'white',
+            headerShown: true
+          }} />
         <Stack.Screen name="AudioUploadScreen" component={AudioUploadScreen} options={{ headerShown: true }} />
         <Stack.Screen name="AudioListScreen" component={AudioListScreen} options={{ headerShown: true }} />
         <Stack.Screen name="RadioListScreen" component={RadioListScreen} options={{ headerShown: true }} />
@@ -56,7 +61,9 @@ const App = () => {
         <Stack.Screen name="MusicPage" component={MusicPage} options={{ headerShown: true }} />
         <Stack.Screen name="AudioPlayerScreen" component={AudioPlayerScreen} options={{ headerShown: true }} />
         <Stack.Screen name="PlayerAudio" component={PlayerAudio} options={{ headerShown: true }} />
-        <Stack.Screen name="PesquisaScreen" component={PesquisaScreen} options={{ headerShown: true }} />
+        <Stack.Screen name="PesquisaScreen" component={PesquisaScreen} options={{
+            headerShown: false
+          }} />
 
         <Stack.Screen name="Home" component={Home}
           options={{
@@ -74,8 +81,8 @@ const App = () => {
 
 const styles = StyleSheet.create({
   headerStyle: {
-    backgroundColor: 'linear-gradient(23.1% 11.89% at 18.02% 8.11%, #FFFFFF 0.19%, rgba(255, 237, 86, 0.70) 100%)',
-    height: 50
+    backgroundColor: '#000',
+    height: 100
   },
   profileImage: {
     width: 40,

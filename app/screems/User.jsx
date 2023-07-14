@@ -10,6 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Ionicons } from '@expo/vector-icons';
 import AudioUploadScreen from './AudioUploadScreen';
 import VideoUploadScreen from './VideoUploadScreen';
+import { ScrollView } from 'react-native-gesture-handler';
 
 export default function Profile({ route }) {
   const navigation = useNavigation();
@@ -187,6 +188,7 @@ export default function Profile({ route }) {
         <Text style={styles.label}>{personName}</Text>
       </View>
       <View style={styles.buttons}>
+        
         <TouchableOpacity
           style={[styles.button, button1Active && styles.activeButton]}
           onPress={handleButton1Click}
@@ -194,22 +196,18 @@ export default function Profile({ route }) {
           <Text style={styles.buttonText}>Upload áudio</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.button, button2Active && styles.activeButton]}
-          onPress={handleButton2Click}
-        >
-          <Text style={styles.buttonText}> Mideas</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
           style={[styles.button, button3Active && styles.activeButton]}
           onPress={handleButton3Click}
         >
           <Text style={styles.buttonText}>Upload Video</Text>
         </TouchableOpacity>
+
       </View>
       <View>
+        <ScrollView>
         {button3Active && <VideoUploadScreen person={person} />}
         {button1Active && <AudioUploadScreen person={person} personId={personId} />}
-        {button2Active && <Componente2 person={person} personId={personId} />}
+        </ScrollView>
       </View>
     </View>
   );

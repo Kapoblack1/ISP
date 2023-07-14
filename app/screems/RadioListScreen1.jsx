@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Text, View, Button, Image, FlatList } from 'react-native';
+import { Text, View, Button, Image, FlatList, StyleSheet } from 'react-native';
 import { FIREBASE_DB } from '../../FirebaseConfig';
 import { getFirestore, collection, onSnapshot } from 'firebase/firestore';
 import { Audio, Video } from 'expo-av';
 import { TouchableOpacity } from 'react-native-gesture-handler';
+import { Ionicons } from '@expo/vector-icons';
 
 const RadioListScreen1 = () => {
   const [radios, setRadios] = useState([]);
@@ -19,7 +20,7 @@ const RadioListScreen1 = () => {
             ...doc.data(),
             isPlaying: false,
             soundObject: null,
-            videoObject: null
+            videoObject: null,
           }));
           setRadios(radioList);
         });
@@ -98,14 +99,14 @@ const RadioListScreen1 = () => {
   const renderRadioItem = ({ item }) => (
     <View key={item.id} style={{ marginRight: 20 }}>
       <TouchableOpacity onPress={() => handlePlayRadio(item)}>
-      <Image
-        source={{ uri: item.thumbnailURL }}
-        style={{ width: 150, height: 150 }}
-        onPress={() => handlePlayVideo(item)}
-      />
+        <Image source={{ uri: item.thumbnailURL }} style={{ width: 150, height: 150 }} />
+        {item.isPlaying ? (
+          <Ionicons name="pause" size={40} color="rgb(248,159,29)" style={styles.playIcon} />
+        ) : (
+          <Ionicons name="play" size={40} color="rgb(248,159,29)" style={styles.playIcon} />
+        )}
       </TouchableOpacity>
-       <Text  style={{ color: 
-        "white"}}>{item.name}</Text>
+      <Text style={{ color: 'rgb(248,159,29)' }}>{item.name}</Text>
     </View>
   );
 
@@ -121,5 +122,14 @@ const RadioListScreen1 = () => {
     />
   );
 };
+
+const styles = StyleSheet.create({
+  playIcon: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: [{ translateX: -20 }, { translateY: -20 }],
+  },
+});
 
 export default RadioListScreen1;

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, KeyboardAvoidingView } from 'react-native';
 import { ref, getDownloadURL } from 'firebase/storage';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';
 import { FIREBASE_STORAGE, FIREBASE_DB } from '../../FirebaseConfig';
 import { useNavigation } from '@react-navigation/native';
 
@@ -14,47 +14,54 @@ const Register = () => {
 
   const navigation = useNavigation();
 
-  function handleRegister() {
-    navigation.navigate('Register');
-    console.log('Navigating to the registration page...');
+  const validateEmail = (email) => {
+    const emailRegex = /^(19|20)\d{6}@isptec.co.ao$/;
+    return emailRegex.test(email);
+
+  };
+
+  function handleLogin() {
+    navigation.navigate("Login1");
   }
+  const handleRegister = async () => {
 
-  useEffect(() => {
-    const imageRef = ref(FIREBASE_STORAGE, '/imagens/logo.png');
-    getDownloadURL(imageRef)
-      .then((url) => {
-        setImageUrl(url);
-      })
-      .catch((error) => {
-        console.log('Error getting image URL from Firebase Storage:', error);
-      });
-  }, []);
+    if (validateEmail(email)) {
 
-  const handleLogin = async () => {
-    try {
-      const q = query(
-        collection(FIREBASE_DB, 'pessoa'),
-        where('email', '==', email),
-        where('password', '==', password)
-      );
+      try {
+        // Verifica se já existe um usuário com o mesmo nome de usuário e senha na base de dados
+        const querySnapshot = await getDocs(
+          query(
+            collection(FIREBASE_DB, 'pessoa'),
+            where('email', '==', email),
+            where('password', '==', password)
+          )
+        );
 
-      const querySnapshot = await getDocs(q);
-
-      if (querySnapshot.size > 0) {
-        const registeredPersonId = querySnapshot.docs[0].id;
-
-        // Validar o domínio do email
-        const validEmailDomain = email.endsWith('@isptec.co.ao');
-        if (validEmailDomain) {
-          navigation.navigate('Home', { personId: registeredPersonId });
-        } else {
-          alert('Invalid email domain');
+        if (!querySnapshot.empty) {
+          console.log('Usuário já existe na base de dados');
+          alert('Esta conta já existe.')
+          return;
         }
-      } else {
-        alert('The user does not exist');
+
+        const defaultImageRef = ref(FIREBASE_STORAGE, '/imagens/person.png');
+        const defaultImageUrl = await getDownloadURL(defaultImageRef);
+
+        // Cria um novo documento na coleção 'pessoa' com os dados fornecidos
+        const docRef = await addDoc(collection(FIREBASE_DB, 'pessoa'), {
+          username,
+          password,
+          email,
+          imageUrl: defaultImageUrl,
+          uploaded: 'true',
+        });
+        console.log('Nova pessoa criada com ID:', docRef.id);
+        navigation.navigate('Login1');
+      } catch (error) {
+        console.log('Erro ao criar uma nova pessoa:', error);
       }
-    } catch (error) {
-      console.log('Error:', error);
+    } else {
+      alert('Formato de e-mail inválido. Por favor introduza um e-mail do formato ISPTEC.');
+
     }
   };
 
@@ -106,8 +113,6 @@ const Register = () => {
             <Text style={styles.buttonText}>Register</Text>
           </TouchableOpacity>
       </View>
-
-      
 
     </KeyboardAvoidingView>
   );
@@ -173,6 +178,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgb(248,159,29)',
     borderRadius: 8,
     paddingHorizontal: 10,
+    color: "white",
 
 
   },

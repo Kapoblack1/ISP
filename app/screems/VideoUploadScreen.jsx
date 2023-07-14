@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, Alert, TextInput, Image, FlatList, StyleSheet, Button } from 'react-native';
+import { View, Text, TouchableOpacity, Alert, TextInput, Image, FlatList, StyleSheet, Button, ScrollView } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, getDocs } from 'firebase/firestore';
@@ -8,6 +8,7 @@ import { Video } from 'expo-av';
 import { v4 as uuidv4 } from 'uuid';
 
 const VideoUploadScreen = () => {
+  const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [videoUri, setVideoUri] = useState('');
   const [thumbnailUri, setThumbnailUri] = useState('');
@@ -73,7 +74,7 @@ const VideoUploadScreen = () => {
   };
 
   const handleUploadPress = async () => {
-    if (description && videoUri && thumbnailUri) {
+    if (title && description && videoUri && thumbnailUri) {
       try {
         const thumbnailResponse = await fetch(thumbnailUri);
         const thumbnailBlob = await thumbnailResponse.blob();
@@ -102,8 +103,9 @@ const VideoUploadScreen = () => {
         // Get the download URL of the video
         const videoURL = await getDownloadURL(videoSnapshot.ref);
 
-        // Save the paths, URLs, and description to Firestore
+        // Save the paths, URLs, title, and description to Firestore
         const videoData = {
+          titulo: title,
           description,
           thumbnailPath: thumbnailStorageRef.fullPath,
           thumbnailURL,
@@ -116,6 +118,7 @@ const VideoUploadScreen = () => {
         await addDoc(videosCollection, videoData);
 
         console.log('Video successfully uploaded to the database!');
+        setTitle('');
         setDescription('');
         setVideoUri('');
         setThumbnailUri('');
@@ -153,6 +156,7 @@ const VideoUploadScreen = () => {
     };
 
     return (
+      <ScrollView>
       <View style={{ marginBottom: 16 }}>
         {selectedVideo === item.videoURL ? (
           <Video
@@ -167,16 +171,25 @@ const VideoUploadScreen = () => {
           </TouchableOpacity>
         )}
       </View>
+      </ScrollView>
     );
   };
 
   return (
-    <View style={{ flex: 1, alignContent:"center", alignItems:"center"}}>
+    <ScrollView>
+    <View style={{ flex: 1, alignContent: "center", alignItems: "center" }}>
+      <TextInput
+        value={title}
+        onChangeText={setTitle}
+        placeholder="Selecione o título"
+        style={styles.input}
+        placeholderTextColor={"white"}
+      />
       <TouchableOpacity onPress={pickVideo} style={styles.button1}>
         <Text style={{ color: 'white' }}>Selecione Video</Text>
       </TouchableOpacity>
       {videoUri && (
-        <View style={{ width: 150, height: 150 }}>
+        <View style={{ width: 100, height: 100 }}>
           <Video
             ref={videoRef}
             source={{ uri: videoUri }}
@@ -202,6 +215,7 @@ const VideoUploadScreen = () => {
         <Text style={{ color: 'white' }}>Upload Video</Text>
       </TouchableOpacity>
     </View>
+   </ScrollView>
   );
 };
 

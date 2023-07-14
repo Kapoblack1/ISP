@@ -15,6 +15,7 @@ import PlayerAudio from './component/PlayerAudio';
 
 const Home = ({ route }) => {
   const { personId } = route.params;
+  const { audio1 } = route.params || {};
   const [videos, setVideos] = useState([]);
   const [personName, setPersonName] = useState('');
   const [foto, setPersonFoto] = useState('');
@@ -23,13 +24,19 @@ const Home = ({ route }) => {
   const [imageUrl1, setImageUrl1] = useState('');
   const navigation = useNavigation();
   const registeredPersonId = personId;
-
   const [audio, setAudio] = useState('');
 
   const childToParent = (childdata) => {
     setAudio(childdata);
 
   }
+  useEffect(() => {
+    if(audio1){
+      setAudio(audio1);
+    }
+      
+  }, [audio1]);
+  
 
   useEffect(() => {
     const imageRef = ref(FIREBASE_STORAGE, '/imagens/logo.png');
@@ -99,7 +106,7 @@ const Home = ({ route }) => {
             <Image source={{ uri: item.thumbnailURL }} style={{ width: 270, height: 200, }} />
           </TouchableOpacity>
         )}
-        <Text style={styles.text}> {item.description}</Text>
+        <Text style={styles.text}> {item.titulo}</Text>
       </View>
     );
   };
@@ -131,8 +138,8 @@ const Home = ({ route }) => {
         <RadioListScreen1></RadioListScreen1>
         <Artistas />
       </ScrollView>
-      <PlayerAudio audio={audio}/>
-      <BottomNavigation />
+        <PlayerAudio audio={audio} />
+      <BottomNavigation personId={personId}/>
       
     </View>
   );
