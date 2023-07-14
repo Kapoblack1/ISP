@@ -43,23 +43,17 @@ const BottomNavigation = ({personId}) => {
       </TouchableOpacity>
       <TouchableOpacity
         style={[styles.tab]}
-        onPress={handleVideoPress}
-      >
-        <Ionicons name="videocam" size={24} color={activeTab === 'video' ? 'rgb(248,159,29)' : 'rgb(248,159,29)'} />
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[styles.tab]}
         onPress={handleSearchPress}
       >
         <Ionicons name="search" size={24} color={activeTab === 'search' ? 'rgb(248,159,29)' : 'rgb(248,159,29)'} />
       </TouchableOpacity>
       <TouchableOpacity
         style={[styles.tab]}
-        onPress={handleRadioPress}
+        onPress={handleVideoPress}
       >
-        <Ionicons name="radio" size={24} color={activeTab === 'radio' ? 'rgb(248,159,29)' : 'rgb(248,159,29)'} />
+        <Ionicons name="videocam" size={24} color={activeTab === 'video' ? 'rgb(248,159,29)' : 'rgb(248,159,29)'} />
       </TouchableOpacity>
-     
+
     </View>
   );
 };

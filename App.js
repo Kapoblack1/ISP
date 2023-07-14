@@ -28,6 +28,7 @@ import Search from './app/screems/Search';
 import AudioPlayerScreen from './app/screems/AudioPlayerScreen';
 import MusicPage from './app/screems/MusicPage';
 import PlayerAudio from './app/screems/component/PlayerAudio';
+import Profile1 from './app/screems/Profile1';
 
 const Stack = createStackNavigator();
 
@@ -61,6 +62,7 @@ const App = () => {
         <Stack.Screen name="MusicPage" component={MusicPage} options={{ headerShown: true }} />
         <Stack.Screen name="AudioPlayerScreen" component={AudioPlayerScreen} options={{ headerShown: true }} />
         <Stack.Screen name="PlayerAudio" component={PlayerAudio} options={{ headerShown: true }} />
+        <Stack.Screen name="Profile1" component={Profile1} options={{ headerShown: false }} />
         <Stack.Screen name="PesquisaScreen" component={PesquisaScreen} options={{
             headerShown: false
           }} />

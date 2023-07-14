@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, Image } from 'react-native';
+import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { getFirestore, collection, onSnapshot, query, getDocs, orderBy, doc, getDoc, where } from 'firebase/firestore';
+import { useNavigation } from '@react-navigation/native';
 
-export default function Artistas() {
+export default function Artistas({personId}) {
+  
 
   const [artists, setArtists] = useState([]);
-
+  const navigation = useNavigation();
 
   useEffect(() => {
     fetchArtists();
@@ -17,24 +19,27 @@ export default function Artistas() {
       const querySnapshot = await getDocs(
         query(artistsCollection, where('upload', '==', 'true'))
       );
-      const artistsData = querySnapshot.docs.map((doc) => doc.data());
+      const artistsData = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
       setArtists(artistsData);
     } catch (error) {
       console.error('Erro ao buscar os artistas:', error);
     }
   };
-  
 
+  const navigateToProfile = (personId) => {
+    navigation.navigate('Profile1', { personId });
+  };
 
   return (
     <View style={{ flex: 1 }}>
-
-
       <FlatList
         data={artists}
-        keyExtractor={(item) => item.email}
+        keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <View style={styles.horizontalItem}>
+          <TouchableOpacity
+            style={styles.horizontalItem}
+            onPress={() => navigateToProfile(item.id)}
+          >
             <Image
               source={{ uri: item.foto }}
               style={{ width: 100, height: 100, borderRadius: 8, margin: 10 }}
@@ -43,8 +48,7 @@ export default function Artistas() {
               useNativeControls
             />
             <Text style={styles.horizontalTitle}>{item.username}</Text>
-
-          </View>
+          </TouchableOpacity>
         )}
         horizontal
         showsHorizontalScrollIndicator={true}
@@ -52,7 +56,7 @@ export default function Artistas() {
       />
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -112,7 +116,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: 'white',
-
   },
   horizontalArtist: {
     fontSize: 14,

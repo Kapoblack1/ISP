@@ -1,18 +1,14 @@
-
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, Image} from 'react-native';
-import { getFirestore, collection, onSnapshot, query, orderBy, doc, getDoc } from 'firebase/firestore';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, Image, } from 'react-native';
+import { getFirestore, collection, onSnapshot, query, orderBy, doc, getDoc, where } from 'firebase/firestore';
 import { FIREBASE_DB } from '../../FirebaseConfig';
 import { Video } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
 import { ScrollView } from 'react-native-gesture-handler';
 
-export default function VideoListScreen() {
-
+export default function VideoListScreen({ person }) {
   const [videos, setVideos] = useState([]);
-  const [artist, setArtist] = useState({});
   const [selectedVideo, setSelectedVideo] = useState(null);
-
 
   useEffect(() => {
     subscribeToVideos();
@@ -20,9 +16,8 @@ export default function VideoListScreen() {
 
   const subscribeToVideos = () => {
     const videosCollection = collection(FIREBASE_DB, 'videos');
-    const artists = collection(FIREBASE_DB, 'pessoas');
 
-    const videosQuery = query(videosCollection, orderBy('createdAt', 'desc'));
+    const videosQuery = query(videosCollection, where('autor', '==', person.username), orderBy('createdAt', 'desc'));
 
     onSnapshot(videosQuery, (snapshot) => {
       const videosData = snapshot.docs.map((doc) => ({
@@ -63,9 +58,8 @@ export default function VideoListScreen() {
                   useNativeControls
                   resizeMode="contain"
                 />
-               </>
+              </>
             )}
-
           </View>
         ))}
       </ScrollView>
@@ -75,9 +69,9 @@ export default function VideoListScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: 'black',
+    backgroundColor: 'rgb(36,36,36)',
     padding: 10,
+    paddingTop: 0,
   },
   header: {
     flexDirection: 'row',
@@ -102,7 +96,6 @@ const styles = StyleSheet.create({
     borderColor: 'rgb(248,159,29)',
     borderBottomLeftRadius: 10,
     borderBottomRightRadius: 10,
-
   },
   thumbnailContainer: {
     position: 'relative',

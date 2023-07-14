@@ -7,7 +7,6 @@ import { Video } from 'expo-av';
 export default function VideoListScreenScroll() {
 
   const [videos, setVideos] = useState([]);
-  
 
   useEffect(() => {
     subscribeToVideos();
@@ -26,25 +25,22 @@ export default function VideoListScreenScroll() {
     });
   };
 
-
   return (
     <View style={{ flex: 1 }}>
-
-
       <FlatList
         data={videos}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.horizontalItem}>
             <Video
-                source={{ uri: item.url }}
-                style={{ width: 300, height: 200, borderRadius: 10 }}
-                resizeMode="cover"
-                horizontal
-                useNativeControls
+              source={{ uri: item.videoURL }}
+              style={{ width: 300, height: 200, borderRadius: 10 }}
+              resizeMode="cover"
+              horizontal
+              useNativeControls
             />
             <Text style={styles.horizontalTitle}>{item.description}</Text>
-        </View>
+          </View>
         )}
         horizontal
         showsHorizontalScrollIndicator={true}
@@ -56,64 +52,64 @@ export default function VideoListScreenScroll() {
 
 const styles = StyleSheet.create({
   container: {
-      flex: 1,
-      backgroundColor: 'white',
-      alignContent: 'center',
-      alignItems: 'center',
+    flex: 1,
+    backgroundColor: 'white',
+    alignContent: 'center',
+    alignItems: 'center',
   },
   header: {
-      flexDirection: 'row',
-      marginTop: 70,
+    flexDirection: 'row',
+    marginTop: 70,
   },
   iconSearch: {
-      marginRight: 5,
-      marginTop: 15,
+    marginRight: 5,
+    marginTop: 15,
   },
   profileImage: {
-      width: 60,
-      height: 60,
-      borderRadius: 40,
-      marginRight: 10,
+    width: 60,
+    height: 60,
+    borderRadius: 40,
+    marginRight: 10,
   },
   label: {
-      fontWeight: 'bold',
-      fontSize: 25,
-      color: 'grey',
-      paddingRight: 100,
-      opacity: 0.5,
+    fontWeight: 'bold',
+    fontSize: 25,
+    color: 'grey',
+    paddingRight: 100,
+    opacity: 0.5,
   },
   scrollContainer: {
-      marginTop: 5,
-      marginBottom: 5,
+    marginTop: 5,
+    marginBottom: 5,
   },
   sectionTitle: {
-      fontSize: 20,
-      fontWeight: 'bold',
-      marginLeft: 10,
-      marginBottom: 20,
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginLeft: 10,
+    marginBottom: 20,
   },
   horizontalItem: {
-      marginLeft: 10,
+    marginLeft: 10,
   },
   rectangularCover: {
-      marginTop: 10,
-      width: 150,
-      height: 150,
-      borderRadius: 0,
+    marginTop: 10,
+    width: 150,
+    height: 150,
+    borderRadius: 0,
   },
   circularCover: {
-      marginTop: 10,
-      width: 100,
-      height: 100,
-      borderRadius: 75,
+    marginTop: 10,
+    width: 100,
+    height: 100,
+    borderRadius: 75,
   },
   horizontalTitle: {
-      marginTop: 5,
-      fontSize: 16,
-      fontWeight: 'bold',
+    marginTop: 5,
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   horizontalArtist: {
-      fontSize: 14,
-      color: 'gray',
+    fontSize: 14,
+    color: 'gray',
   },
 });

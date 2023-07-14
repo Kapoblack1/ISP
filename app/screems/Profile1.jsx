@@ -11,8 +11,9 @@ import { Ionicons } from '@expo/vector-icons';
 import AudioUploadScreen from './AudioUploadScreen';
 import VideoUploadScreen from './VideoUploadScreen';
 import { ScrollView } from 'react-native-gesture-handler';
+import VideoListScreen2 from './VideoListScreen2';
 
-export default function Profile({ route }) {
+export default function Profile1({ route }) {
   const navigation = useNavigation();
   const { personId } = route.params;
   const [personName, setPersonName] = useState('');
@@ -105,7 +106,7 @@ export default function Profile({ route }) {
   }
 
   function Home() {
-    navigation.navigate('Home', { personId: personId });
+    navigation.goBack();
   }
 
   const handleButton1Click = () => {
@@ -127,39 +128,69 @@ export default function Profile({ route }) {
   };
 
   const Componente1 = () => {
-    return (
-      <View>
-        <Text>Componente 1 Ativo</Text>
-      </View>
-    );
-  };
-
-  const Componente2 = () => {
     const [audios, setAudios] = useState([]);
-
+  
     useEffect(() => {
       const fetchAudios = async () => {
         try {
           const audiosCollectionRef = collection(FIREBASE_DB, 'audio');
-          const q = query(audiosCollectionRef, where('autor', '==', person.username), orderBy('timestamp', 'desc'));
-
+          const q = query(audiosCollectionRef, where('autor', '==', person.username));
+  
           const unsubscribe = onSnapshot(q, (snapshot) => {
             const updatedAudios = snapshot.docs.map((doc) => ({
               id: doc.id,
               ...doc.data(),
             }));
-
+  
             setAudios(updatedAudios);
           });
-
+  
           return () => unsubscribe();
         } catch (error) {
           console.log('Error fetching audios:', error);
         }
       };
-
+  
       fetchAudios();
     }, [person.username]);
+  
+    return (
+      <View>
+        {audios.map((audio) => (
+          <Text key={audio.id}>{audio.name}</Text>
+        ))}
+      </View>
+    );
+  };
+  
+  const Componente2 = () => {
+    const [videos, setVideos] = useState([]);
+  
+    useEffect(() => {
+      const fetchVideos = async () => {
+        try {
+          const videosCollectionRef = collection(FIREBASE_DB, 'videos');
+          const q = query(videosCollectionRef, where('autor', '==', person.username));
+  
+          const unsubscribe = onSnapshot(q, (snapshot) => {
+            const updatedVideos = snapshot.docs.map((doc) => ({
+              id: doc.id,
+              ...doc.data(),
+            }));
+  
+            setVideos(updatedVideos);
+          });
+  
+          return () => unsubscribe();
+        } catch (error) {
+          console.log('Error fetching videos:', error);
+        }
+      };
+  
+      fetchVideos();
+    }, [person.username]);
+  
+  
 
     return (
       <View>
@@ -170,14 +201,12 @@ export default function Profile({ route }) {
     );
   };
 
+  
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={Home}>
           <Ionicons style={styles.iconBack} name="chevron-back-outline" size={30} color="white" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={logout}>
-          <Ionicons name="log-out-outline" size={30} color="white" />
         </TouchableOpacity>
       </View>
 
@@ -190,23 +219,19 @@ export default function Profile({ route }) {
       <View style={styles.buttons}>
         
         <TouchableOpacity
-          style={[styles.button, button1Active && styles.activeButton]}
-          onPress={handleButton1Click}
-        >
-          <Text style={styles.buttonText}>Upload áudio</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
           style={[styles.button, button3Active && styles.activeButton]}
           onPress={handleButton3Click}
         >
-          <Text style={styles.buttonText}>Upload Video</Text>
+          <Text style={styles.buttonText}>Mostrar Video</Text>
         </TouchableOpacity>
 
       </View>
       <ScrollView style={styles.scroll}>
-      <View >
-        {button3Active && <VideoUploadScreen person={person} />}
+      <View>
+        
+        {button3Active && <VideoListScreen2 person={person} />}
         {button1Active && <AudioUploadScreen person={person} personId={personId} />}
+        
       </View>
       </ScrollView>
     </View>
@@ -215,7 +240,6 @@ export default function Profile({ route }) {
 
 const styles = StyleSheet.create({
   container: {
-    alignItems: 'center',
     backgroundColor: 'rgb(36,36,36)',
     flex: 1,
   },
@@ -355,7 +379,8 @@ const styles = StyleSheet.create({
   persoContainer:{
     alignItems: 'center'
   },
-  cont:{
+  scroll:{
+    pmargingBottom: 200,
     flex:1
   }
 

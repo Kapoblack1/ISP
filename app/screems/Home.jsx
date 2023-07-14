@@ -33,8 +33,7 @@ const Home = ({ route }) => {
   useEffect(() => {
     if(audio1){
       setAudio(audio1);
-    }
-      
+    }    
   }, [audio1]);
   
 
@@ -136,7 +135,7 @@ const Home = ({ route }) => {
         </ScrollView>
         <Text style={styles.title}>Rádio</Text>
         <RadioListScreen1></RadioListScreen1>
-        <Artistas />
+        <Artistas personId={personId}/>
       </ScrollView>
         <PlayerAudio audio={audio} />
       <BottomNavigation personId={personId}/>
